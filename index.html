@@ -1,60 +1,209 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Get Your Secret Chinese Name</title>
+  <title>发现你的中文名</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
       background: linear-gradient(135deg, #fdfcfb 0%, #e2d1c3 100%);
-      min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
     }
     .container {
-      background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-      padding: 40px 30px; max-width: 520px; width: 100%;
+      background: #ffffff;
+      border-radius: 24px;
+      box-shadow: 0 25px 70px rgba(0, 0, 0, 0.12);
+      padding: 48px 36px;
+      max-width: 560px;
+      width: 100%;
+      transition: transform 0.2s;
     }
-    h1 { text-align: center; font-size: 28px; color: #2c3e50; margin-bottom: 8px; }
-    .subtitle { text-align: center; color: #7f8c8d; font-size: 14px; margin-bottom: 30px; }
-    label { display: block; margin-top: 18px; margin-bottom: 6px; font-weight: 600; color: #34495e; }
-    input { width: 100%; padding: 14px 16px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 16px; }
-    input:focus { outline: none; border-color: #e74c3c; }
-    .btn {
-      width: 100%; padding: 16px; background: #e74c3c; color: white; border: none;
-      border-radius: 10px; font-size: 18px; font-weight: 600; cursor: pointer; margin-top: 20px;
+    .emoji-header { text-align: center; font-size: 40px; margin-bottom: 4px; }
+    h1 {
+      text-align: center;
+      font-size: 30px;
+      font-weight: 700;
+      color: #2c3e50;
+      margin-bottom: 6px;
+      letter-spacing: -0.3px;
     }
-    .btn:hover { background: #c0392b; }
-    .btn:disabled { background: #bdc3c7; cursor: not-allowed; }
+    .subtitle {
+      text-align: center;
+      color: #7f8c8d;
+      font-size: 15px;
+      margin-bottom: 32px;
+      font-weight: 400;
+    }
+    label {
+      display: block;
+      margin-top: 18px;
+      margin-bottom: 6px;
+      font-weight: 600;
+      color: #34495e;
+      font-size: 14px;
+    }
+    input {
+      width: 100%;
+      padding: 14px 18px;
+      border: 2px solid #e8e8e8;
+      border-radius: 12px;
+      font-size: 16px;
+      transition: border-color 0.25s, box-shadow 0.25s;
+      background: #fafafa;
+    }
+    input:focus {
+      outline: none;
+      border-color: #e74c3c;
+      box-shadow: 0 0 0 4px rgba(231, 76, 60, 0.12);
+      background: #fff;
+    }
+    .btn-primary {
+      width: 100%;
+      padding: 16px 24px;
+      background: #e74c3c;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 28px;
+      transition: background 0.25s, transform 0.1s;
+      letter-spacing: 0.3px;
+    }
+    .btn-primary:hover { background: #c0392b; }
+    .btn-primary:active { transform: scale(0.98); }
+    .btn-primary:disabled {
+      background: #bdc3c7;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .btn-success {
+      background: #27ae60;
+    }
+    .btn-success:hover { background: #1e8449; }
     .result-box {
-      margin-top: 30px; padding: 25px; background: #fafafa; border-radius: 12px;
-      border: 1px solid #eee; display: none;
+      margin-top: 32px;
+      padding: 28px 24px;
+      background: #f9f9f9;
+      border-radius: 16px;
+      border: 1px solid #eee;
+      display: none;
+      animation: fadeUp 0.5s ease;
     }
     .result-box.visible { display: block; }
-    .chinese-name { text-align: center; font-size: 48px; font-weight: bold; color: #c0392b; }
-    .pinyin { text-align: center; font-size: 16px; color: #7f8c8d; margin-bottom: 20px; }
-    .free-part { line-height: 1.7; color: #34495e; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px dashed #ddd; }
-    .premium-locked { filter: blur(6px); user-select: none; pointer-events: none; color: #95a5a6; line-height: 1.8; }
-    .premium-unlocked { line-height: 1.8; color: #2c3e50; }
-    .lock-overlay { text-align: center; margin-top: 20px; }
-    .unlock-btn { background: #27ae60; }
-    .unlock-btn:hover { background: #219a52; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .chinese-name {
+      text-align: center;
+      font-size: 54px;
+      font-weight: 700;
+      color: #c0392b;
+      letter-spacing: 6px;
+      margin-bottom: 2px;
+    }
+    .pinyin {
+      text-align: center;
+      font-size: 16px;
+      color: #95a5a6;
+      margin-bottom: 20px;
+      font-weight: 400;
+    }
+    .free-part {
+      line-height: 1.8;
+      color: #34495e;
+      font-size: 15px;
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 1px dashed #ddd;
+    }
+    .premium-locked {
+      filter: blur(8px);
+      user-select: none;
+      pointer-events: none;
+      color: #95a5a6;
+      line-height: 1.9;
+      font-size: 15px;
+    }
+    .premium-unlocked {
+      line-height: 1.9;
+      color: #2c3e50;
+      font-size: 15px;
+    }
+    .lock-overlay {
+      text-align: center;
+      margin-top: 20px;
+    }
+    .unlock-btn {
+      background: #27ae60;
+      padding: 14px 44px;
+      font-size: 17px;
+      width: auto;
+      display: inline-block;
+      border-radius: 40px;
+      font-weight: 700;
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      transition: background 0.25s, transform 0.1s;
+    }
+    .unlock-btn:hover { background: #1e8449; }
+    .unlock-btn:active { transform: scale(0.97); }
+    .unlock-btn:disabled {
+      background: #bdc3c7;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .hint-text {
+      font-size: 12px;
+      color: #95a5a6;
+      margin-top: 8px;
+    }
     .hidden { display: none; }
-    .error-msg { background: #ffeaa7; color: #d63031; padding: 12px; border-radius: 8px; margin-top: 15px; display: none; }
+    .error-msg {
+      background: #fde8e8;
+      color: #c0392b;
+      padding: 14px 18px;
+      border-radius: 10px;
+      margin-top: 16px;
+      font-size: 14px;
+      display: none;
+      border-left: 4px solid #c0392b;
+    }
+    .error-msg.visible { display: block; }
+    .story-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #c0392b;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>🔮</h1>
-    <h1>Discover Your Chinese Name</h1>
-    <p class="subtitle">Unlock the poetry hidden in your name</p>
+    <div class="emoji-header">🔮</div>
+    <h1>发现你的中文名</h1>
+    <p class="subtitle">解锁藏在你名字里的诗意</p>
 
     <form id="nameForm">
-      <label for="englishName">Your English Name *</label>
-      <input type="text" id="englishName" placeholder="e.g. Emma" required>
-      <label for="interest">What do you love? (optional)</label>
-      <input type="text" id="interest" placeholder="e.g. nature, music, adventure">
-      <button type="submit" class="btn" id="submitBtn">Get My Chinese Name</button>
+      <label for="englishName">你的英文名 *</label>
+      <input type="text" id="englishName" placeholder="例如 Emma" required>
+
+      <label for="interest">你有什么爱好？（可选）</label>
+      <input type="text" id="interest" placeholder="例如 自然、音乐、冒险">
+
+      <button type="submit" class="btn-primary" id="submitBtn">✨ 获取我的中文名</button>
     </form>
 
     <div class="error-msg" id="errorMsg"></div>
@@ -64,18 +213,22 @@
       <div class="pinyin" id="pinyinDisplay"></div>
       <div class="free-part" id="freePart"></div>
 
+      <!-- 锁定区域 -->
       <div id="lockedSection">
-        <div class="premium-locked">
-          This name carries an ancient secret. It traces back to a line of classical Chinese poetry from the Song Dynasty... The full story reveals which poem inspired it, what this name says about your personality, and why it resonates so deeply with your personal traits.
+        <div class="premium-locked" id="lockedPreview">
+          🏯 这个名字背后藏着一个古老的秘密……<br>
+          它源自一首宋代诗词，诗人在山水之间写下了这些字符的意境。<br>
+          完整的故事将告诉你：这首诗出自哪里、这个名字在当代给人的感觉、以及它为什么与你的性格如此契合。
         </div>
         <div class="lock-overlay">
-          <button class="btn unlock-btn" id="unlockBtn">🔓 Unlock Full Story — $4.99</button>
-          <p style="font-size:12px;color:#95a5a6;margin-top:8px;">One-time payment • Instant unlock</p>
+          <button class="unlock-btn" id="unlockBtn">🔓 解锁完整故事 — $4.99</button>
+          <p class="hint-text">一次性支付 • 即时解锁</p>
         </div>
       </div>
 
+      <!-- 解锁后的区域 -->
       <div id="unlockedSection" class="hidden">
-        <h3 style="margin-bottom:12px;color:#c0392b;">✨ The Full Story</h3>
+        <div class="story-title">✨ 完整故事</div>
         <div class="premium-unlocked" id="paidPartDisplay"></div>
       </div>
     </div>
@@ -83,7 +236,7 @@
 
   <script>
     // ==========================================
-    // ✅ 后端 API 地址（已配置好）
+    // ⚠️ 后端 API 地址（必须修改为你自己的 Render 域名）
     // ==========================================
     const API_BASE = 'https://chinese-name-api.onrender.com';
     // ==========================================
@@ -92,50 +245,86 @@
     const errorMsg = document.getElementById('errorMsg');
     const lockedSection = document.getElementById('lockedSection');
     const unlockedSection = document.getElementById('unlockedSection');
+    const chineseNameEl = document.getElementById('chineseName');
+    const pinyinDisplayEl = document.getElementById('pinyinDisplay');
+    const freePartEl = document.getElementById('freePart');
+    const paidPartDisplayEl = document.getElementById('paidPartDisplay');
+    const submitBtn = document.getElementById('submitBtn');
+    const unlockBtn = document.getElementById('unlockBtn');
+    const nameForm = document.getElementById('nameForm');
+    const englishNameInput = document.getElementById('englishName');
+    const interestInput = document.getElementById('interest');
+
     let currentOrderId = null;
 
+    // ---- 检查支付回调 ----
     (function checkReturn() {
       const urlParams = new URLSearchParams(window.location.search);
       const orderId = urlParams.get('orderId');
       const paid = urlParams.get('paid');
+
       if (orderId && paid === 'true') {
         resultBox.classList.add('visible');
         lockedSection.classList.add('hidden');
         unlockedSection.classList.add('hidden');
-        document.getElementById('freePart').textContent = 'Loading your full story...';
+        freePartEl.textContent = '⏳ 正在加载你的完整故事...';
+
         let attempts = 0;
+        const maxAttempts = 20;
         const interval = setInterval(async () => {
           attempts++;
           try {
             const res = await fetch(`${API_BASE}/api/get-story/${orderId}`);
+            if (res.status === 403) {
+              // 尚未支付，继续等待
+              if (attempts < maxAttempts) return;
+              clearInterval(interval);
+              freePartEl.textContent = '⚠️ 支付还在处理中，请稍后刷新页面。';
+              return;
+            }
             if (res.ok) {
               clearInterval(interval);
               const data = await res.json();
-              document.getElementById('chineseName').textContent = data.chinese_name;
-              document.getElementById('pinyinDisplay').textContent = data.pinyin;
+              chineseNameEl.textContent = data.chinese_name;
+              pinyinDisplayEl.textContent = data.pinyin;
+              lockedSection.classList.add('hidden');
               unlockedSection.classList.remove('hidden');
-              document.getElementById('paidPartDisplay').textContent = data.paid_part;
-            } else if (attempts >= 15) {
+              paidPartDisplayEl.textContent = data.paid_part;
+              // 清除 URL 参数，防止刷新后重复加载
+              window.history.replaceState({}, document.title, window.location.pathname);
+            } else if (attempts >= maxAttempts) {
               clearInterval(interval);
-              document.getElementById('freePart').textContent = 'Payment processing. Please refresh.';
+              freePartEl.textContent = '⚠️ 加载失败，请刷新页面重试。';
             }
-          } catch(e) { if (attempts >= 15) clearInterval(interval); }
-        }, 2000);
+          } catch (e) {
+            if (attempts >= maxAttempts) {
+              clearInterval(interval);
+              freePartEl.textContent = '⚠️ 网络错误，请刷新页面重试。';
+            }
+          }
+        }, 1500);
       }
     })();
 
-    document.getElementById('nameForm').addEventListener('submit', async (e) => {
+    // ---- 生成中文名 ----
+    nameForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const englishName = document.getElementById('englishName').value.trim();
-      const interest = document.getElementById('interest').value.trim();
-      const submitBtn = document.getElementById('submitBtn');
-      errorMsg.style.display = 'none';
+
+      const englishName = englishNameInput.value.trim();
+      const interest = interestInput.value.trim();
+
+      if (!englishName) {
+        showError('请输入你的英文名');
+        return;
+      }
+
+      hideError();
       resultBox.classList.remove('visible');
       lockedSection.classList.remove('hidden');
       unlockedSection.classList.add('hidden');
 
-      submitBtn.textContent = 'Generating...';
       submitBtn.disabled = true;
+      submitBtn.textContent = '⏳ 生成中...';
 
       try {
         const res = await fetch(`${API_BASE}/api/generate`, {
@@ -143,42 +332,71 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ englishName, interest })
         });
+
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Failed');
+
+        if (!res.ok) {
+          throw new Error(data.error || data.details || '生成失败，请重试');
+        }
+
         currentOrderId = data.orderId;
-        document.getElementById('chineseName').textContent = data.chinese_name;
-        document.getElementById('pinyinDisplay').textContent = data.pinyin;
-        document.getElementById('freePart').textContent = data.free_part;
+        chineseNameEl.textContent = data.chinese_name;
+        pinyinDisplayEl.textContent = data.pinyin;
+        freePartEl.textContent = data.free_part;
         resultBox.classList.add('visible');
+
       } catch (err) {
-        errorMsg.textContent = err.message;
-        errorMsg.style.display = 'block';
+        showError(err.message);
       } finally {
-        submitBtn.textContent = 'Get My Chinese Name';
         submitBtn.disabled = false;
+        submitBtn.textContent = '✨ 获取我的中文名';
       }
     });
 
-    document.getElementById('unlockBtn').addEventListener('click', async () => {
-      if (!currentOrderId) return;
-      const btn = document.getElementById('unlockBtn');
-      btn.textContent = 'Redirecting...';
-      btn.disabled = true;
+    // ---- 解锁支付 ----
+    unlockBtn.addEventListener('click', async () => {
+      if (!currentOrderId) {
+        alert('请先生成你的中文名');
+        return;
+      }
+
+      unlockBtn.disabled = true;
+      unlockBtn.textContent = '⏳ 跳转支付...';
+
       try {
         const res = await fetch(`${API_BASE}/api/create-checkout`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ orderId: currentOrderId })
         });
+
         const data = await res.json();
-        if (data.url) window.location.href = data.url;
-        else throw new Error('No checkout URL');
+
+        if (!res.ok) {
+          throw new Error(data.error || data.details || '创建支付失败');
+        }
+
+        if (data.url) {
+          window.location.href = data.url;
+        } else {
+          throw new Error('未返回支付链接');
+        }
+
       } catch (err) {
-        alert('Payment error: ' + err.message);
-        btn.textContent = '🔓 Unlock Full Story — $4.99';
-        btn.disabled = false;
+        alert('❌ 支付错误：' + err.message);
+        unlockBtn.disabled = false;
+        unlockBtn.textContent = '🔓 解锁完整故事 — $4.99';
       }
     });
+
+    function showError(msg) {
+      errorMsg.textContent = msg;
+      errorMsg.classList.add('visible');
+    }
+
+    function hideError() {
+      errorMsg.classList.remove('visible');
+    }
   </script>
 </body>
 </html>
