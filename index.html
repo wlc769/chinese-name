@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Get Your Secret Chinese Name</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #fdfcfb 0%, #e2d1c3 100%);
+      min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px;
+    }
+    .container {
+      background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+      padding: 40px 30px; max-width: 520px; width: 100%;
+    }
+    h1 { text-align: center; font-size: 28px; color: #2c3e50; margin-bottom: 8px; }
+    .subtitle { text-align: center; color: #7f8c8d; font-size: 14px; margin-bottom: 30px; }
+    label { display: block; margin-top: 18px; margin-bottom: 6px; font-weight: 600; color: #34495e; }
+    input { width: 100%; padding: 14px 16px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 16px; }
+    input:focus { outline: none; border-color: #e74c3c; }
+    .btn {
+      width: 100%; padding: 16px; background: #e74c3c; color: white; border: none;
+      border-radius: 10px; font-size: 18px; font-weight: 600; cursor: pointer; margin-top: 20px;
+    }
+    .btn:hover { background: #c0392b; }
+    .btn:disabled { background: #bdc3c7; cursor: not-allowed; }
+    .result-box {
+      margin-top: 30px; padding: 25px; background: #fafafa; border-radius: 12px;
+      border: 1px solid #eee; display: none;
+    }
+    .result-box.visible { display: block; }
+    .chinese-name { text-align: center; font-size: 48px; font-weight: bold; color: #c0392b; }
+    .pinyin { text-align: center; font-size: 16px; color: #7f8c8d; margin-bottom: 20px; }
+    .free-part { line-height: 1.7; color: #34495e; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px dashed #ddd; }
+    .premium-locked { filter: blur(6px); user-select: none; pointer-events: none; color: #95a5a6; line-height: 1.8; }
+    .premium-unlocked { line-height: 1.8; color: #2c3e50; }
+    .lock-overlay { text-align: center; margin-top: 20px; }
+    .unlock-btn { background: #27ae60; }
+    .unlock-btn:hover { background: #219a52; }
+    .hidden { display: none; }
+    .error-msg { background: #ffeaa7; color: #d63031; padding: 12px; border-radius: 8px; margin-top: 15px; display: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔮</h1>
+    <h1>Discover Your Chinese Name</h1>
+    <p class="subtitle">Unlock the poetry hidden in your name</p>
+
+    <form id="nameForm">
+      <label for="englishName">Your English Name *</label>
+      <input type="text" id="englishName" placeholder="e.g. Emma" required>
+      <label for="interest">What do you love? (optional)</label>
+      <input type="text" id="interest" placeholder="e.g. nature, music, adventure">
+      <button type="submit" class="btn" id="submitBtn">Get My Chinese Name</button>
+    </form>
+
+    <div class="error-msg" id="errorMsg"></div>
+
+    <div class="result-box" id="resultBox">
+      <div class="chinese-name" id="chineseName"></div>
+      <div class="pinyin" id="pinyinDisplay"></div>
+      <div class="free-part" id="freePart"></div>
+
+      <div id="lockedSection">
+        <div class="premium-locked">
+          This name carries an ancient secret. It traces back to a line of classical Chinese poetry from the Song Dynasty... The full story reveals which poem inspired it, what this name says about your personality, and why it resonates so deeply with your personal traits.
+        </div>
+        <div class="lock-overlay">
+          <button class="btn unlock-btn" id="unlockBtn">🔓 Unlock Full Story — $4.99</button>
+          <p style="font-size:12px;color:#95a5a6;margin-top:8px;">One-time payment • Instant unlock</p>
+        </div>
+      </div>
+
+      <div id="unlockedSection" class="hidden">
+        <h3 style="margin-bottom:12px;color:#c0392b;">✨ The Full Story</h3>
+        <div class="premium-unlocked" id="paidPartDisplay"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==========================================
+    // 👇 部署后改成你的后端域名（Render 域名）
+    // ==========================================
+    const API_BASE = 'https://你的后端域名.onrender.com';
+    // ==========================================
+
+    const resultBox = document.getElementById('resultBox');
+    const errorMsg = document.getElementById('errorMsg');
+    const lockedSection = document.getElementById('lockedSection');
+    const unlockedSection = document.getElementById('unlockedSection');
+    let currentOrderId = null;
+
+    (function checkReturn() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const orderId = urlParams.get('orderId');
+      const paid = urlParams.get('paid');
+      if (orderId && paid === 'true') {
+        resultBox.classList.add('visible');
+        lockedSection.classList.add('hidden');
+        unlockedSection.classList.add('hidden');
+        document.getElementById('freePart').textContent = 'Loading your full story...';
+        let attempts = 0;
+        const interval = setInterval(async () => {
+          attempts++;
+          try {
+            const res = await fetch(`${API_BASE}/api/get-story/${orderId}`);
+            if (res.ok) {
+              clearInterval(interval);
+              const data = await res.json();
+              document.getElementById('chineseName').textContent = data.chinese_name;
+              document.getElementById('pinyinDisplay').textContent = data.pinyin;
+              unlockedSection.classList.remove('hidden');
+              document.getElementById('paidPartDisplay').textContent = data.paid_part;
+            } else if (attempts >= 15) {
+              clearInterval(interval);
+              document.getElementById('freePart').textContent = 'Payment processing. Please refresh.';
+            }
+          } catch(e) { if (attempts >= 15) clearInterval(interval); }
+        }, 2000);
+      }
+    })();
+
+    document.getElementById('nameForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const englishName = document.getElementById('englishName').value.trim();
+      const interest = document.getElementById('interest').value.trim();
+      const submitBtn = document.getElementById('submitBtn');
+      errorMsg.style.display = 'none';
+      resultBox.classList.remove('visible');
+      lockedSection.classList.remove('hidden');
+      unlockedSection.classList.add('hidden');
+
+      submitBtn.textContent = 'Generating...';
+      submitBtn.disabled = true;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/generate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ englishName, interest })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed');
+        currentOrderId = data.orderId;
+        document.getElementById('chineseName').textContent = data.chinese_name;
+        document.getElementById('pinyinDisplay').textContent = data.pinyin;
+        document.getElementById('freePart').textContent = data.free_part;
+        resultBox.classList.add('visible');
+      } catch (err) {
+        errorMsg.textContent = err.message;
+        errorMsg.style.display = 'block';
+      } finally {
+        submitBtn.textContent = 'Get My Chinese Name';
+        submitBtn.disabled = false;
+      }
+    });
+
+    document.getElementById('unlockBtn').addEventListener('click', async () => {
+      if (!currentOrderId) return;
+      const btn = document.getElementById('unlockBtn');
+      btn.textContent = 'Redirecting...';
+      btn.disabled = true;
+      try {
+        const res = await fetch(`${API_BASE}/api/create-checkout`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderId: currentOrderId })
+        });
+        const data = await res.json();
+        if (data.url) window.location.href = data.url;
+        else throw new Error('No checkout URL');
+      } catch (err) {
+        alert('Payment error: ' + err.message);
+        btn.textContent = '🔓 Unlock Full Story — $4.99';
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
