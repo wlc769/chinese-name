@@ -1,6 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const fetch = require('node-fetch');
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
@@ -8,38 +7,45 @@ const path = require('path');
 const app = express();
 
 // ==========================================
-// ✅ 所有密钥从环境变量读取（安全）
+// 所有密钥从环境变量读取（安全）
 // ==========================================
 const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
 const PADDLE_API_KEY = process.env.PADDLE_API_KEY;
 const PADDLE_PRICE_ID = process.env.PADDLE_PRICE_ID;
-const YOUR_FRONTEND_DOMAIN = process.env.FRONTEND_URL || 'https://你的前端域名.vercel.app';
-// ==========================================
+// FRONTEND_URL 可选，用于 CORS 白名单，若未设置则允许所有来源（仅开发测试）
+const FRONTEND_URL = process.env.FRONTEND_URL;
 
-// 检查必要的环境变量是否存在
+// 检查必要的环境变量
 if (!DEEPSEEK_API_KEY || !PADDLE_API_KEY || !PADDLE_PRICE_ID) {
   console.error('❌ 错误：缺少必要的环境变量！');
   console.error('请设置：DEEPSEEK_API_KEY, PADDLE_API_KEY, PADDLE_PRICE_ID');
   process.exit(1);
 }
 
-app.use(cors({
-  origin: YOUR_FRONTEND_DOMAIN,
-  methods: ['GET', 'POST'],
-  allowedHeaders: ['Content-Type']
-}));
+// CORS 配置：如果设置了 FRONTEND_URL 则使用，否则允许所有（开发模式）
+const corsOptions = FRONTEND_URL
+  ? { origin: FRONTEND_URL, methods: ['GET', 'POST'], allowedHeaders: ['Content-Type'] }
+  : { origin: '*', methods: ['GET', 'POST'], allowedHeaders: ['Content-Type'] };
 
+app.use(cors(corsOptions));
+if (!FRONTEND_URL) {
+  console.warn('⚠️ 警告：FRONTEND_URL 未设置，CORS 允许所有来源，生产环境请务必设置！');
+}
+
+app.use(express.json());
+
+// ---- 简易数据库 (JSON 文件) ----
 const DB_FILE = path.join(__dirname, 'orders.json');
 function readDB() {
-  try { if (fs.existsSync(DB_FILE)) return JSON.parse(fs.readFileSync(DB_FILE, 'utf8')); } catch(e){}
+  try { if (fs.existsSync(DB_FILE)) return JSON.parse(fs.readFileSync(DB_FILE, 'utf8')); } catch(e) {}
   return {};
 }
 function writeDB(data) {
-  try { fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2)); } catch(e){}
+  try { fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2)); } catch(e) {}
 }
 
 // ===== 接口1：生成中文名 =====
-app.post('/api/generate', express.json(), async (req, res) => {
+app.post('/api/generate', async (req, res) => {
   try {
     const { englishName, interest } = req.body;
     if (!englishName || englishName.trim() === '') {
@@ -109,7 +115,7 @@ Rules: authentic Chinese surname, poetic given name, paid_part must feel worth p
 });
 
 // ===== 接口2：创建 Paddle 支付链接 =====
-app.post('/api/create-checkout', express.json(), async (req, res) => {
+app.post('/api/create-checkout', async (req, res) => {
   try {
     const { orderId } = req.body;
     if (!orderId) return res.status(400).json({ error: 'Missing orderId' });
@@ -127,7 +133,7 @@ app.post('/api/create-checkout', express.json(), async (req, res) => {
         items: [{ price_id: PADDLE_PRICE_ID, quantity: 1 }],
         custom_data: { order_id: orderId },
         settings: {
-          success_url: `${YOUR_FRONTEND_DOMAIN}?orderId=${orderId}&paid=true`,
+          success_url: `${FRONTEND_URL || 'https://your-frontend.vercel.app'}?orderId=${orderId}&paid=true`,
           allow_coupons: false
         }
       })
@@ -163,7 +169,7 @@ app.get('/api/get-story/:orderId', (req, res) => {
 });
 
 // ===== Webhook：Paddle 支付通知 =====
-app.post('/api/webhook', express.json(), (req, res) => {
+app.post('/api/webhook', (req, res) => {
   const event = req.body;
   if (event.event_type === 'transaction.completed') {
     const orderId = event.data.custom_data?.order_id;
